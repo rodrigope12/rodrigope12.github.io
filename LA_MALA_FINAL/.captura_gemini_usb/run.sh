@@ -95,8 +95,7 @@ prompt_for_valid_api_key() {
     while true; do
         printf "Pega tu GEMINI_API_KEY: "
         read -r GEMINI_API_KEY
-        GEMINI_API_KEY="${GEMINI_API_KEY//$'
-'/}"
+        GEMINI_API_KEY="$(printf '%s' "$GEMINI_API_KEY" | tr -d '\r')"
         export GEMINI_API_KEY
 
         if validate_api_key "$GEMINI_API_KEY"; then
