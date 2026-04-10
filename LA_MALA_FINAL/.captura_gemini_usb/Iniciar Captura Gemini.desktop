@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Iniciar Captura Gemini
+Comment=Captura pantalla, envia a Gemini y abre la respuesta
+Exec=python3 -c "import os,subprocess,sys,urllib.parse; ref=sys.argv[1]; path=urllib.parse.urlparse(ref).path if ref.startswith('file://') else ref; path=urllib.parse.unquote(path); base=os.path.dirname(path); raise SystemExit(subprocess.call(['bash', os.path.join(base, 'INICIAR.sh')]))" %k
+Icon=accessories-text-editor
+Terminal=true
+Categories=Utility;
+StartupNotify=true

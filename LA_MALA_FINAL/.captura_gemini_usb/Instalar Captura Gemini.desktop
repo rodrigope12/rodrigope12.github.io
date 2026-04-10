@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Instalar Captura Gemini
+Comment=Instala localmente Captura Gemini y crea lanzador
+Exec=python3 -c "import os,subprocess,sys,urllib.parse; ref=sys.argv[1]; path=urllib.parse.urlparse(ref).path if ref.startswith('file://') else ref; path=urllib.parse.unquote(path); base=os.path.dirname(path); raise SystemExit(subprocess.call(['bash', os.path.join(base, 'INSTALAR.sh')]))" %k
+Icon=system-software-install
+Terminal=true
+Categories=Utility;
+StartupNotify=true
