@@ -41,7 +41,116 @@ show_note() {
     fi
 }
 
+save_api_key_env() {
+    local model_value="${GEMINI_MODEL:-gemini-3-pro-preview}"
+    printf 'GEMINI_API_KEY=%s\n' "$GEMINI_API_KEY" > .env
+    printf 'GEMINI_MODEL=%s\n' "$model_value" >> .env
+}
+
+validate_api_key() {
+    local candidate="$1"
+    GEMINI_API_KEY_TO_VALIDATE="$candidate" "$PYTHON_BIN" - <<'PY'
+import json
+import os
+from urllib import error as urllib_error
+from urllib import request as urllib_request
+
+key = os.environ.get("GEMINI_API_KEY_TO_VALIDATE", "").strip()
+if not key or key == "__SET_ME__":
+    raise SystemExit(10)
+
+request = urllib_request.Request(
+    "https://generativelanguage.googleapis.com/v1beta/models",
+    headers={"x-goog-api-key": key},
+    method="GET",
+)
+
+try:
+    with urllib_request.urlopen(request, timeout=20) as response:
+        payload = json.loads(response.read().decode("utf-8"))
+    if isinstance(payload, dict) and "models" in payload:
+        raise SystemExit(0)
+    raise SystemExit(20)
+except urllib_error.HTTPError as exc:
+    detail = exc.read().decode("utf-8", errors="replace").lower()
+    hints = (
+        "api key",
+        "api_key",
+        "credential",
+        "credentials",
+        "unregistered caller",
+        "unregistered callers",
+        "authentication",
+        "auth",
+    )
+    if exc.code in {400, 401, 403} and any(hint in detail for hint in hints):
+        raise SystemExit(10)
+    raise SystemExit(20)
+except urllib_error.URLError:
+    raise SystemExit(20)
+PY
+}
+
+prompt_for_valid_api_key() {
+    while true; do
+        printf "Pega tu GEMINI_API_KEY: "
+        read -r GEMINI_API_KEY
+        GEMINI_API_KEY="${GEMINI_API_KEY//$'
+'/}"
+        export GEMINI_API_KEY
+
+        if validate_api_key "$GEMINI_API_KEY"; then
+            save_api_key_env
+            return 0
+        fi
+
+        local status=$?
+        if [[ "$status" -eq 10 ]]; then
+            echo "La clave no fue aceptada por Gemini. Intenta otra vez."
+            continue
+        fi
+
+        echo "No se pudo validar la clave ahora mismo. Revisa internet o intenta otra vez."
+        echo "Si quieres salir, presiona Ctrl+C."
+    done
+}
+
+ensure_valid_api_key_for_launch() {
+    if [[ -z "${GEMINI_API_KEY:-}" || "${GEMINI_API_KEY:-}" == "__SET_ME__" ]]; then
+        if [[ "$CAPTURE_ONCE" -eq 1 ]]; then
+            show_note "Falta GEMINI_API_KEY.
+
+Abre primero el lanzador principal para guardar tu clave y registrar el atajo global ${HOTKEY_LABEL}."
+            return 1
+        fi
+        prompt_for_valid_api_key
+        return 0
+    fi
+
+    if validate_api_key "$GEMINI_API_KEY"; then
+        return 0
+    fi
+
+    local status=$?
+    if [[ "$status" -eq 10 ]]; then
+        if [[ "$CAPTURE_ONCE" -eq 1 ]]; then
+            show_note "La GEMINI_API_KEY guardada no fue aceptada por Gemini.
+
+Abre el lanzador principal, pega la clave correcta y se guardara de nuevo."
+            return 1
+        fi
+        echo "La GEMINI_API_KEY guardada no fue aceptada por Gemini."
+        prompt_for_valid_api_key
+        return 0
+    fi
+
+    echo "No se pudo validar la GEMINI_API_KEY guardada ahora mismo. Se intentara usar tal como esta."
+    return 0
+}
+
 append_unique() {
+
+
     local value="$1"
     local item
     for item in "${AUTO_INSTALL_PACKAGES[@]:-}"; do
@@ -175,6 +284,17 @@ Luego vuelve a abrir este lanzador."
     return 0
 }
 
+if ! command -v python3 >/dev/null 2>&1; then
+    if [[ "$CAPTURE_ONCE" -eq 1 || "$SELF_TEST_CAPTURE" -eq 1 || "$SELF_TEST_WATCH" -eq 1 ]]; then
+        show_note "No se encontro python3.
+
+Instala Python 3 en esta computadora para usar Captura Gemini."
+    fi
+    echo "No se encontro python3."
+    echo "En Debian instala Python 3 antes de continuar."
+    exit 1
+fi
+
 if [[ "$SELF_TEST_CAPTURE" -eq 0 && "$SELF_TEST_WATCH" -eq 0 ]]; then
     if [[ -z "${GEMINI_API_KEY:-}" && -f .env ]]; then
         set -a
@@ -187,29 +307,9 @@ if [[ "$SELF_TEST_CAPTURE" -eq 0 && "$SELF_TEST_WATCH" -eq 0 ]]; then
         export GEMINI_API_KEY
     fi
 
-    if [[ -z "${GEMINI_API_KEY:-}" || "${GEMINI_API_KEY:-}" == "__SET_ME__" ]]; then
-        if [[ "$CAPTURE_ONCE" -eq 1 ]]; then
-            show_note "Falta GEMINI_API_KEY.
-
-Abre primero el lanzador principal para guardar tu clave y registrar el atajo global ${HOTKEY_LABEL}."
-            exit 1
-        fi
-        printf "Pega tu GEMINI_API_KEY: "
-        read -r GEMINI_API_KEY
-        export GEMINI_API_KEY
-        printf 'GEMINI_API_KEY=%s\n' "$GEMINI_API_KEY" > .env
+    if ! ensure_valid_api_key_for_launch; then
+        exit 1
     fi
-fi
-
-if ! command -v python3 >/dev/null 2>&1; then
-    if [[ "$CAPTURE_ONCE" -eq 1 || "$SELF_TEST_CAPTURE" -eq 1 || "$SELF_TEST_WATCH" -eq 1 ]]; then
-        show_note "No se encontro python3.
-
-Instala Python 3 en esta computadora para usar Captura Gemini."
-    fi
-    echo "No se encontro python3."
-    echo "En Debian instala Python 3 antes de continuar."
-    exit 1
 fi
 
 if ! ensure_system_dependencies; then
