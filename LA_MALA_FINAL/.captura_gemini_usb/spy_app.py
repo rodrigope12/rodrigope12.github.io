@@ -45,6 +45,7 @@ WATCH_STABLE_INTERVAL = 0.75
 SUPPORTED_IMAGE_SUFFIXES = {".png", ".jpg", ".jpeg", ".webp", ".bmp"}
 
 _processing_lock = threading.Lock()
+_session_history: list[dict[str, object]] = []
 F8_SEQUENCES = {"\x1b[19~"}
 _last_f8_time = 0.0
 
@@ -66,6 +67,41 @@ def api_key() -> str:
 
 def configure_client() -> None:
     api_key()
+
+
+def reset_runtime_session() -> None:
+    _session_history.clear()
+
+
+def session_capture_count() -> int:
+    return sum(1 for item in _session_history if item.get("role") == "user")
+
+
+def build_user_image_content(image_bytes: bytes, mime_type: str) -> dict[str, object]:
+    return {
+        "role": "user",
+        "parts": [
+            {
+                "inline_data": {
+                    "mime_type": mime_type,
+                    "data": base64.b64encode(image_bytes).decode("ascii"),
+                }
+            }
+        ],
+    }
+
+
+def extract_model_content_from_gemini_response(payload: dict, fallback_text: str) -> dict[str, object]:
+    for candidate in payload.get("candidates", []):
+        content = candidate.get("content", {})
+        parts = content.get("parts", [])
+        if isinstance(parts, list) and parts:
+            return {
+                "role": content.get("role") or "model",
+                "parts": parts,
+            }
+
+    return {"role": "model", "parts": [{"text": fallback_text}]}
 
 
 def screenshot_watch_directories() -> list[Path]:
@@ -449,20 +485,8 @@ def analyze_image(image_path: Path) -> str:
     configure_client()
     image_bytes = image_path.read_bytes()
     mime_type = mimetypes.guess_type(str(image_path))[0] or "image/png"
-    payload = {
-        "contents": [
-            {
-                "parts": [
-                    {
-                        "inline_data": {
-                            "mime_type": mime_type,
-                            "data": base64.b64encode(image_bytes).decode("ascii"),
-                        }
-                    },
-                ]
-            }
-        ]
-    }
+    user_content = build_user_image_content(image_bytes, mime_type)
+    payload = {"contents": [*_session_history, user_content]}
     request = urllib_request.Request(
         gemini_endpoint(),
         data=json.dumps(payload).encode("utf-8"),
@@ -482,7 +506,11 @@ def analyze_image(image_path: Path) -> str:
     except urllib_error.URLError as exc:
         raise RuntimeError(f"No se pudo conectar con Gemini: {exc.reason}") from exc
 
-    return extract_text_from_gemini_response(response_payload)
+    text = extract_text_from_gemini_response(response_payload)
+    model_content = extract_model_content_from_gemini_response(response_payload, text)
+    _session_history.append(user_content)
+    _session_history.append(model_content)
+    return text
 
 
 def process_existing_image(image_path: Path, *, delete_after_send: bool = DELETE_AFTER_SEND) -> None:
@@ -501,6 +529,7 @@ def process_existing_image(image_path: Path, *, delete_after_send: bool = DELETE
                 return
 
         print(f"Usando imagen guardada: {image_path}")
+        print(f"Contexto acumulado en esta sesion: {session_capture_count()} captura(s) previa(s).")
         print(f"Enviando imagen a Gemini con el modelo {MODEL_NAME}...")
         result = analyze_image(image_path)
         write_result(result)
@@ -541,6 +570,7 @@ def process_capture() -> None:
         image_path, backend_name = capture_to_file()
         print(f"Captura guardada temporalmente en: {image_path}")
         print(f"Backend de captura usado: {backend_name}")
+        print(f"Contexto acumulado en esta sesion: {session_capture_count()} captura(s) previa(s).")
         print(f"Enviando imagen a Gemini con el modelo {MODEL_NAME}...")
         result = analyze_image(image_path)
         write_result(result)
@@ -752,6 +782,8 @@ def print_intro() -> None:
     print("           Captura Visible + Gemini (Debian)          ")
     print("=======================================================")
     print("La app se ejecuta de forma visible en esta terminal.")
+    print("El contexto solo se conserva mientras esta app siga abierta.")
+    print("Si cierras y vuelves a abrir, arranca una sesion nueva.")
     print("La respuesta se guarda en informacion.txt y se abre")
     print("con el editor de texto del sistema.")
     print("")
@@ -783,6 +815,7 @@ def print_capture_diagnostics() -> None:
 
 
 def main() -> None:
+    reset_runtime_session()
     try:
         api_key()
     except RuntimeError as exc:
@@ -845,6 +878,7 @@ def main_self_test_watch() -> int:
 
 
 def main_analyze_file(image_path_arg: str) -> None:
+    reset_runtime_session()
     try:
         api_key()
     except RuntimeError as exc:
@@ -860,6 +894,7 @@ def main_analyze_file(image_path_arg: str) -> None:
 
 
 def main_capture_once() -> None:
+    reset_runtime_session()
     try:
         api_key()
     except RuntimeError as exc:
