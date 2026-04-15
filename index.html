@@ -5,74 +5,50 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>LA_MALA_FINAL</title>
   <style>
-    :root { color-scheme: light; }
-    body {
-      margin: 0;
-      font-family: Georgia, "Times New Roman", serif;
-      background: linear-gradient(180deg, #f7f1e8 0%, #efe5d6 100%);
-      color: #1f1a17;
-    }
-    main {
-      max-width: 720px;
-      margin: 0 auto;
-      padding: 56px 24px 72px;
-    }
-    h1 {
-      font-size: clamp(2.2rem, 7vw, 4.6rem);
-      line-height: 0.95;
-      margin: 0 0 16px;
-      letter-spacing: -0.04em;
-    }
-    p {
-      font-size: 1.08rem;
-      line-height: 1.6;
-      margin: 0 0 14px;
-      max-width: 52ch;
-    }
-    .actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      margin: 28px 0 18px;
-    }
-    .btn {
-      display: inline-block;
-      padding: 14px 18px;
-      border-radius: 999px;
-      text-decoration: none;
-      font-weight: 700;
-      color: #fff8ef;
-      background: #8f2d16;
-      box-shadow: 0 10px 25px rgba(143, 45, 22, 0.15);
-    }
-    .btn.alt {
-      background: #29443a;
-    }
-    .meta {
-      margin-top: 24px;
-      padding-top: 18px;
-      border-top: 1px solid rgba(31, 26, 23, 0.18);
-      font-size: 0.96rem;
-    }
-    code {
-      background: rgba(31, 26, 23, 0.07);
-      padding: 2px 6px;
-      border-radius: 6px;
-    }
+    :root { color-scheme: light; --paper:#f7f1e8; --ink:#1f1a17; --red:#8f2d16; --green:#29443a; --line:rgba(31,26,23,.18); }
+    body { margin:0; font-family: Georgia, "Times New Roman", serif; background: radial-gradient(circle at top left, #fff8ec 0, var(--paper) 34%, #eadbc8 100%); color:var(--ink); }
+    main { max-width: 980px; margin:0 auto; padding:54px 22px 76px; }
+    h1 { font-size:clamp(2.3rem,7vw,5.2rem); line-height:.9; margin:0 0 16px; letter-spacing:-.05em; }
+    .lead { font-size:1.12rem; line-height:1.6; max-width:58ch; margin:0 0 28px; }
+    .grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; margin:28px 0 22px; }
+    .card { border:1px solid var(--line); border-radius:28px; padding:24px; background:rgba(255,250,242,.68); box-shadow:0 18px 48px rgba(80,48,24,.10); }
+    h2 { margin:0 0 10px; font-size:1.65rem; letter-spacing:-.02em; }
+    p { font-size:1rem; line-height:1.55; margin:0 0 16px; }
+    .actions { display:flex; flex-wrap:wrap; gap:10px; margin-top:18px; }
+    .btn { display:inline-block; padding:13px 16px; border-radius:999px; text-decoration:none; font-weight:700; color:#fff8ef; background:var(--red); }
+    .btn.alt { background:var(--green); }
+    .meta { margin-top:30px; padding-top:18px; border-top:1px solid var(--line); font-size:.96rem; }
+    code { background:rgba(31,26,23,.07); padding:2px 6px; border-radius:6px; }
+    @media (max-width: 720px) { .grid { grid-template-columns:1fr; } }
   </style>
 </head>
 <body>
   <main>
     <h1>LA_MALA_<br>FINAL</h1>
-    <p>Descarga la carpeta completa desde cualquier computadora. El paquete publico no incluye tu clave real de Gemini.</p>
-    <div class="actions">
-      <a class="btn" href="./LA_MALA_FINAL.zip">Descargar ZIP</a>
-      <a class="btn alt" href="./LA_MALA_FINAL.tar.gz">Descargar TAR.GZ</a>
-    </div>
-    <p>Si en la otra computadora no has guardado la clave, la app te la pedira la primera vez o puedes editar <code>.captura_gemini_usb/.env</code>.</p>
-    <div class="meta">
-      URL corta: <code>rodrigope12.github.io</code>
-    </div>
+    <p class="lead">Elige que version quieres descargar. Ninguna descarga publica incluye tu clave real de Gemini; la app la pide y la valida al abrirse.</p>
+
+    <section class="grid" aria-label="Descargas">
+      <article class="card">
+        <h2>Solo Foto</h2>
+        <p>No manda prompt de texto. Cada envio contiene solo la imagen y conserva contexto solo mientras la app esta abierta.</p>
+        <div class="actions">
+          <a class="btn" href="./LA_MALA_FINAL_SOLO_FOTO.zip">ZIP Solo Foto</a>
+          <a class="btn alt" href="./LA_MALA_FINAL_SOLO_FOTO.tar.gz">TAR.GZ</a>
+        </div>
+      </article>
+
+      <article class="card">
+        <h2>Respuestas</h2>
+        <p>Manda el prompt anterior para responder solo con las respuestas finales correctas, sin explicaciones.</p>
+        <div class="actions">
+          <a class="btn" href="./LA_MALA_FINAL_RESPUESTAS.zip">ZIP Respuestas</a>
+          <a class="btn alt" href="./LA_MALA_FINAL_RESPUESTAS.tar.gz">TAR.GZ</a>
+        </div>
+      </article>
+    </section>
+
+    <p>El enlace viejo <code>LA_MALA_FINAL.zip</code> sigue funcionando y apunta a la version <strong>Solo Foto</strong>.</p>
+    <div class="meta">URL corta: <code>rodrigope12.github.io</code></div>
   </main>
 </body>
 </html>

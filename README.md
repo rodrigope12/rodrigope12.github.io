@@ -1,9 +1,10 @@
 # LA_MALA_FINAL
 
-Sitio minimo para descargar el paquete desde cualquier computadora.
+Sitio minimo para descargar dos variantes del paquete.
 
-- URL publica: https://rodrigope12.github.io/
-- Descarga directa ZIP: https://rodrigope12.github.io/LA_MALA_FINAL.zip
-- Descarga directa TAR.GZ: https://rodrigope12.github.io/LA_MALA_FINAL.tar.gz
+- Web: https://rodrigope12.github.io/
+- Solo foto: https://rodrigope12.github.io/LA_MALA_FINAL_SOLO_FOTO.zip
+- Respuestas: https://rodrigope12.github.io/LA_MALA_FINAL_RESPUESTAS.zip
+- Alias viejo: https://rodrigope12.github.io/LA_MALA_FINAL.zip
 
-El archivo `.env` del paquete publico fue saneado para no exponer la clave real.
+El archivo `.env` de las descargas publicas esta saneado para no exponer la clave real.

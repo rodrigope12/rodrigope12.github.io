@@ -1,0 +1,17 @@
+Si ya tenias una copia anterior en el escritorio, borra esa carpeta completa y vuelve a copiar esta.
+
+1. Copia esta carpeta completa al escritorio de la computadora.
+2. Abre la carpeta copiada en el escritorio.
+3. Da doble clic en: 1 - DOBLE CLIC AQUI
+4. Cuando abra la app, pega tu clave de Gemini si la pide.
+5. Deja la app abierta.
+6. Toma la captura con Fn+Impr o ImprPant.
+7. Guarda la imagen en la carpeta normal de capturas.
+8. La app detecta sola la imagen, la envia a Gemini y luego la borra.
+
+Despues:
+- En GNOME tambien queda el atajo Ctrl+Alt+G
+- Con la terminal enfocada tambien sirve F8 para captura directa opcional
+- La respuesta se abre en informacion.txt
+
+No saques archivos de esta carpeta.

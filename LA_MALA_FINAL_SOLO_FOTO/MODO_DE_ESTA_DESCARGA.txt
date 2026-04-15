@@ -1,0 +1,3 @@
+MODO: SOLO FOTO
+
+Esta version no manda prompt de texto a Gemini; envia solo la imagen.
