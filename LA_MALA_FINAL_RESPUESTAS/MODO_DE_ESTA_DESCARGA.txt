@@ -1,3 +1,0 @@
-MODO: RESPUESTAS
-
-Esta version manda un prompt para devolver solo las respuestas finales correctas.
